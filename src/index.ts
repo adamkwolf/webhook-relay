@@ -4,6 +4,7 @@
  */
 
 import { Router } from './router';
+import { GitHubHandler } from './handlers/github';
 
 /**
  * Centralized error handler
@@ -29,8 +30,11 @@ function handleError(error: unknown): Response {
 // Initialize router
 const router = new Router();
 
-// Add webhook catch endpoint
-router.add('/catch/:source', async (request, match, env, ctx) => {
+// Initialize handlers
+const githubHandler = new GitHubHandler();
+
+// Add webhook catch endpoint for GitHub
+router.add('/catch/github', async (request, match, env, ctx) => {
   // Only accept POST requests
   if (request.method !== 'POST') {
     return new Response(
@@ -42,19 +46,30 @@ router.add('/catch/:source', async (request, match, env, ctx) => {
     );
   }
 
-  // Parse JSON body with error handling
-  let body: any;
-  try {
-    const text = await request.text();
+  // Get raw body text for signature verification
+  const bodyText = await request.text();
 
-    // Handle empty body
-    if (!text || text.trim() === '') {
-      body = {};
+  // Verify signature
+  const isValid = await githubHandler.verify(request, bodyText, env);
+  if (!isValid) {
+    return new Response(
+      JSON.stringify({ status: 'error', error: 'Invalid signature' }),
+      {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
+  // Parse JSON body
+  let payload: any;
+  try {
+    if (!bodyText || bodyText.trim() === '') {
+      payload = {};
     } else {
-      body = JSON.parse(text);
+      payload = JSON.parse(bodyText);
     }
   } catch (error) {
-    // Return 400 for malformed JSON
     return new Response(
       JSON.stringify({ status: 'error', error: 'Invalid JSON body' }),
       {
@@ -64,9 +79,12 @@ router.add('/catch/:source', async (request, match, env, ctx) => {
     );
   }
 
-  // Return accepted status with source
+  // Normalize event
+  const normalizedEvent = await githubHandler.normalize(request, payload);
+
+  // Return normalized event (for now, later will forward to Clawdbot)
   return new Response(
-    JSON.stringify({ status: 'accepted', source: match.params.source }),
+    JSON.stringify(normalizedEvent),
     {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -105,5 +123,8 @@ export default {
 };
 
 export interface Env {
-  // Environment bindings will be added here as we progress
+  // Webhook secrets
+  GITHUB_WEBHOOK_SECRET?: string;
+
+  // More environment bindings will be added here as we progress
 }

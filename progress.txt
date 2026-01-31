@@ -173,3 +173,25 @@
 - Handler structure: src/handlers/<source>/ directory for each webhook source
 
 ---
+
+## [2026-01-31 05:00 UTC] - US-010 (COMPLETED)
+- Implemented GitHub event normalization
+- Files created:
+  - src/handlers/github/normalize.ts - Event normalization logic
+- normalizeGitHubEvent(request, payload) function
+- Parses X-GitHub-Event and X-GitHub-Delivery headers
+- Maps GitHub events to normalized format (github.push, github.star, etc.)
+- Extracts metadata: repo, action, sender, and event-specific fields
+- Event-specific metadata for push, star, pull_request, issues events
+- Returns NormalizedEvent conforming to interface
+- Typecheck passes
+
+**Learnings for future iterations:**
+- GitHub event types: push, star, pull_request, issues, etc.
+- X-GitHub-Event header contains event type
+- X-GitHub-Delivery header contains unique delivery ID
+- payload.repository.full_name contains repo name
+- payload.action contains action type (opened, closed, etc.)
+- payload.sender.login contains username
+
+---
