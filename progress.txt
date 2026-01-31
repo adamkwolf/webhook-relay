@@ -60,3 +60,19 @@
 - Routes are checked in order, first match wins
 
 ---
+
+## [2026-01-31 04:30 UTC] - US-004 (COMPLETED)
+- Implemented catch endpoint stub for POST requests
+- Files changed:
+  - src/index.ts - Updated /catch/:source handler to enforce POST method
+- POST /catch/:source returns {status: 'accepted', source: '<source>'}
+- Non-POST methods return 405 with JSON error
+- Source parameter extracted from URL via router
+- Typecheck passes
+
+**Learnings for future iterations:**
+- HTTP method checking done via request.method property
+- 405 Method Not Allowed is the correct status for unsupported HTTP methods
+- Webhook handlers will build on this stub pattern
+
+---

@@ -21,6 +21,28 @@ router.add('/catch/:source', async (request, match, env, ctx) => {
     );
   }
 
+  // Parse JSON body with error handling
+  let body: any;
+  try {
+    const text = await request.text();
+
+    // Handle empty body
+    if (!text || text.trim() === '') {
+      body = {};
+    } else {
+      body = JSON.parse(text);
+    }
+  } catch (error) {
+    // Return 400 for malformed JSON
+    return new Response(
+      JSON.stringify({ status: 'error', error: 'Invalid JSON body' }),
+      {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
   // Return accepted status with source
   return new Response(
     JSON.stringify({ status: 'accepted', source: match.params.source }),
