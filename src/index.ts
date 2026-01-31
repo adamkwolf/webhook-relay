@@ -8,11 +8,22 @@ import { Router } from './router';
 // Initialize router
 const router = new Router();
 
-// Add a test route for /catch/:source
+// Add webhook catch endpoint
 router.add('/catch/:source', async (request, match, env, ctx) => {
-  // Placeholder handler for now
+  // Only accept POST requests
+  if (request.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ status: 'error', error: 'Method Not Allowed' }),
+      {
+        status: 405,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
+  // Return accepted status with source
   return new Response(
-    JSON.stringify({ status: 'test', source: match.params.source }),
+    JSON.stringify({ status: 'accepted', source: match.params.source }),
     {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

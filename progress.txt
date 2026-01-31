@@ -41,3 +41,22 @@
 - Default 404 handler for unknown routes
 
 ---
+
+## [2026-01-31 04:25 UTC] - US-003 (COMPLETED)
+- Implemented URL router with parameter extraction
+- Files created:
+  - src/router.ts - Router class with path matching and param extraction
+- Files changed:
+  - src/index.ts - Integrated router into fetch handler
+- Router uses regex patterns to match paths like /catch/:source
+- Extracts URL parameters into params object accessible in handlers
+- Returns JSON 404 responses for unknown routes: {status: 'error', error: 'Not Found'}
+- Typecheck passes
+
+**Learnings for future iterations:**
+- Router pattern uses regex with named capture groups for parameter extraction
+- Pattern format: /catch/:source becomes regex ^/catch/([^/]+)$
+- Router.notFound() provides consistent JSON error responses
+- Routes are checked in order, first match wins
+
+---
