@@ -98,3 +98,22 @@
 - 400 Bad Request is appropriate status for malformed input
 
 ---
+
+## [2026-01-31 04:40 UTC] - US-006 (COMPLETED)
+- Implemented centralized error handling
+- Files changed:
+  - src/index.ts - Added handleError() function and try-catch wrapper
+  - progress.txt - Updated Codebase Patterns section
+- Created handleError() function that logs errors with stack traces
+- Wrapped main fetch handler in try-catch to catch all uncaught exceptions
+- Returns consistent {status: 'error', error: 'message'} format
+- Returns 500 Internal Server Error for uncaught exceptions
+- Typecheck passes
+
+**Learnings for future iterations:**
+- Centralized error handling prevents crashes and provides consistent error responses
+- console.error() is available in Cloudflare Workers for logging
+- Error objects have .message and .stack properties
+- 500 status code appropriate for unexpected server errors
+
+---
