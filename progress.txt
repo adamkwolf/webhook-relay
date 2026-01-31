@@ -117,3 +117,21 @@
 - 500 status code appropriate for unexpected server errors
 
 ---
+
+## [2026-01-31 04:45 UTC] - US-007 (COMPLETED)
+- Defined TypeScript types for webhook system
+- Files created:
+  - src/types.ts - Core type definitions
+- WebhookSource type defined: 'github' | 'stripe' | 'vercel' | 'custom'
+- NormalizedEvent interface with id, source, eventType, timestamp, payload, metadata
+- WebhookHandler interface with verify() and normalize() methods
+- Metadata supports flexible fields for different webhook sources
+- Typecheck passes
+
+**Learnings for future iterations:**
+- Types defined centrally in src/types.ts for reuse across handlers
+- NormalizedEvent provides unified structure regardless of source
+- WebhookHandler interface ensures consistent handler implementation
+- Metadata uses index signature for extensibility: [key: string]: any
+
+---
