@@ -1,5 +1,10 @@
 ## Codebase Patterns
-(Patterns will be added as we discover them)
+- Use `npm run typecheck` to verify TypeScript compilation before commits
+- JSON responses need explicit `Content-Type: application/json` header
+- Router uses pattern `/path/:param` format, extracts params via regex
+- HTTP status codes: 200 OK, 400 Bad Request, 404 Not Found, 405 Method Not Allowed
+- Parse request body with `request.text()` then `JSON.parse()` for better error control
+- Empty request bodies should be handled gracefully (treat as empty object)
 
 ---
 
@@ -74,5 +79,22 @@
 - HTTP method checking done via request.method property
 - 405 Method Not Allowed is the correct status for unsupported HTTP methods
 - Webhook handlers will build on this stub pattern
+
+---
+
+## [2026-01-31 04:35 UTC] - US-005 (COMPLETED)
+- Implemented JSON body parsing with error handling
+- Files changed:
+  - src/index.ts - Added JSON parsing with try-catch to /catch/:source handler
+- Parses JSON from request body using request.text() then JSON.parse()
+- Returns 400 Invalid JSON body for malformed JSON
+- Empty bodies handled gracefully (treated as empty object {})
+- Typecheck passes
+
+**Learnings for future iterations:**
+- Must use request.text() before JSON.parse() in Workers
+- request.json() could be used but explicit error handling with text+parse gives better control
+- Empty string or whitespace-only bodies need explicit handling to avoid parse errors
+- 400 Bad Request is appropriate status for malformed input
 
 ---
