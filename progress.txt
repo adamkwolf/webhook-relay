@@ -135,3 +135,23 @@
 - Metadata uses index signature for extensibility: [key: string]: any
 
 ---
+
+## [2026-01-31 04:50 UTC] - US-008 (COMPLETED)
+- Implemented HMAC-SHA256 verification utility
+- Files created:
+  - src/crypto/hmac.ts - HMAC verification using Web Crypto API
+- verifyHmacSha256(secret, payload, signature) function
+- Uses crypto.subtle (Web Crypto API) - Cloudflare Workers compatible
+- Returns boolean: true if signature matches, false otherwise
+- Empty inputs return false without crashing
+- Timing-safe comparison prevents timing attacks
+- Signature compared as lowercase hex strings
+- Typecheck passes
+
+**Learnings for future iterations:**
+- Web Crypto API is available via global `crypto.subtle` in Workers
+- Use TextEncoder to convert strings to Uint8Array for crypto operations
+- HMAC signatures should be compared in constant time to prevent timing attacks
+- Hex conversion: Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('')
+
+---
