@@ -24,3 +24,20 @@
 - This codebase follows standard Cloudflare Workers TypeScript structure
 
 ---
+
+## [2026-01-31 04:20 UTC] - US-002 (COMPLETED)
+- Implemented health check endpoint
+- Files changed:
+  - src/index.ts - Added GET /health route handler
+- Returns JSON response: {status: 'healthy', version: '0.1.0'}
+- Response includes Content-Type: application/json header
+- Returns 200 status code
+- Typecheck passes
+
+**Learnings for future iterations:**
+- Workers fetch handler uses URL parsing via new URL(request.url)
+- Route matching done via url.pathname and request.method checks
+- JSON responses need explicit Content-Type header
+- Default 404 handler for unknown routes
+
+---
