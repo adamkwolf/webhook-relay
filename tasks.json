@@ -1,0 +1,523 @@
+{
+  "project": "webhook-relay",
+  "version": "1.0",
+  "created": "2026-01-31",
+  "sprints": [
+    {
+      "id": "sprint-1",
+      "name": "Foundation",
+      "goal": "Basic Cloudflare Worker that receives HTTP requests, routes them, and responds with JSON",
+      "demo": "curl POST /catch/test returns {status:accepted}, GET /health returns status",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "1.1",
+          "name": "Project Scaffolding",
+          "description": "Initialize Wrangler project with TypeScript, configure wrangler.toml and tsconfig.json with strict mode",
+          "validation": "wrangler dev starts without errors",
+          "status": "pending"
+        },
+        {
+          "id": "1.2",
+          "name": "Health Endpoint",
+          "description": "Create src/index.ts with basic request handler, implement GET /health returning {status:healthy,version:0.1.0}",
+          "validation": "Unit test verifies response shape and status code 200",
+          "status": "pending"
+        },
+        {
+          "id": "1.3",
+          "name": "Router Implementation",
+          "description": "Create src/router.ts with path matching logic, support /catch/:source pattern with param extraction, handle 404",
+          "validation": "Unit tests for path matching, param extraction, 404 handling",
+          "status": "pending"
+        },
+        {
+          "id": "1.4",
+          "name": "Catch Endpoint Stub",
+          "description": "Create POST /catch/:source endpoint, extract source param, return accepted response, reject non-POST with 405",
+          "validation": "Unit tests for POST acceptance, method rejection, param extraction",
+          "status": "pending"
+        },
+        {
+          "id": "1.5",
+          "name": "Request Body Parsing",
+          "description": "Parse JSON body from requests, handle malformed JSON with 400, handle empty body gracefully",
+          "validation": "Unit tests for valid JSON, invalid JSON, empty body",
+          "status": "pending"
+        },
+        {
+          "id": "1.6",
+          "name": "Error Handling Middleware",
+          "description": "Create centralized error handler, return consistent {status:error,error:message} format, log to console",
+          "validation": "Unit tests verify error responses for thrown exceptions",
+          "status": "pending"
+        },
+        {
+          "id": "1.7",
+          "name": "Local Development Setup",
+          "description": "Add npm run dev/test scripts, create .dev.vars.example template",
+          "validation": "npm run dev and npm run test both work",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "sprint-2",
+      "name": "GitHub Webhook Support",
+      "goal": "Receive GitHub webhooks, validate HMAC-SHA256 signatures, parse events",
+      "demo": "Mock GitHub webhook with valid signature accepted, invalid signature rejected",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "2.1",
+          "name": "Types Definition",
+          "description": "Create src/types.ts with NormalizedEvent interface, WebhookSource enum, WebhookHandler interface",
+          "validation": "TypeScript compiles without errors",
+          "status": "pending"
+        },
+        {
+          "id": "2.2",
+          "name": "HMAC-SHA256 Utility",
+          "description": "Create src/crypto/hmac.ts with verifyHmacSha256(secret, payload, signature) using Web Crypto API",
+          "validation": "Unit tests with known HMAC vectors, invalid signatures, empty inputs",
+          "status": "pending"
+        },
+        {
+          "id": "2.3",
+          "name": "GitHub Signature Parser",
+          "description": "Create src/handlers/github/signature.ts, parse X-Hub-Signature-256 header (sha256=hex format)",
+          "validation": "Unit tests for valid header, missing header, malformed format",
+          "status": "pending"
+        },
+        {
+          "id": "2.4",
+          "name": "GitHub Signature Verification",
+          "description": "Create src/handlers/github/verify.ts combining HMAC utility with signature parser",
+          "validation": "Unit tests with real GitHub webhook examples, invalid signatures",
+          "status": "pending"
+        },
+        {
+          "id": "2.5",
+          "name": "GitHub Event Type Extractor",
+          "description": "Create src/handlers/github/events.ts, parse X-GitHub-Event and X-GitHub-Delivery headers, map to normalized names",
+          "validation": "Unit tests for header extraction, event mapping",
+          "status": "pending"
+        },
+        {
+          "id": "2.6",
+          "name": "GitHub Payload Normalizer",
+          "description": "Create src/handlers/github/normalize.ts, transform payload to NormalizedEvent, extract repo/action/sender",
+          "validation": "Unit tests with sample payloads for push, star, PR, issues",
+          "status": "pending"
+        },
+        {
+          "id": "2.7",
+          "name": "GitHub Handler Integration",
+          "description": "Create src/handlers/github/index.ts implementing WebhookHandler interface, wire into router",
+          "validation": "Integration test: mock request → handler → normalized response",
+          "status": "pending"
+        },
+        {
+          "id": "2.8",
+          "name": "Environment Variable Access",
+          "description": "Create src/config/env.ts with typed Env interface, add GITHUB_WEBHOOK_SECRET to wrangler.toml",
+          "validation": "TypeScript provides autocomplete for env vars",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "sprint-3",
+      "name": "Multi-Source Support",
+      "goal": "Add Stripe, Vercel, and generic webhook handlers with their signature schemes",
+      "demo": "All four sources accept webhooks with valid signatures, reject invalid ones",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "3.1",
+          "name": "Stripe Signature Parser",
+          "description": "Create src/handlers/stripe/signature.ts, parse Stripe-Signature header (t=timestamp,v1=signature)",
+          "validation": "Unit tests for header parsing, missing components",
+          "status": "pending"
+        },
+        {
+          "id": "3.2",
+          "name": "Stripe Signature Verification",
+          "description": "Implement Stripe scheme: HMAC-SHA256(secret, timestamp.payload), verify timestamp tolerance (5 min)",
+          "validation": "Unit tests with Stripe test vectors, expired timestamps",
+          "status": "pending"
+        },
+        {
+          "id": "3.3",
+          "name": "Stripe Event Normalizer",
+          "description": "Create src/handlers/stripe/normalize.ts, map event types, extract amount/customer fields",
+          "validation": "Unit tests with sample Stripe payloads",
+          "status": "pending"
+        },
+        {
+          "id": "3.4",
+          "name": "Stripe Handler Integration",
+          "description": "Create src/handlers/stripe/index.ts, implement WebhookHandler, wire to /catch/stripe",
+          "validation": "Integration test with mock Stripe webhook",
+          "status": "pending"
+        },
+        {
+          "id": "3.5",
+          "name": "Vercel Signature Verification",
+          "description": "Create src/handlers/vercel/verify.ts with HMAC-SHA1 verification, parse X-Vercel-Signature",
+          "validation": "Unit tests with mock Vercel signatures",
+          "status": "pending"
+        },
+        {
+          "id": "3.6",
+          "name": "Vercel Event Normalizer",
+          "description": "Create src/handlers/vercel/normalize.ts, map deployment events (created, succeeded, failed)",
+          "validation": "Unit tests with sample Vercel payloads",
+          "status": "pending"
+        },
+        {
+          "id": "3.7",
+          "name": "Vercel Handler Integration",
+          "description": "Create src/handlers/vercel/index.ts, implement WebhookHandler, wire to /catch/vercel",
+          "validation": "Integration test with mock Vercel webhook",
+          "status": "pending"
+        },
+        {
+          "id": "3.8",
+          "name": "Generic/Custom Handler",
+          "description": "Create src/handlers/custom/index.ts with HMAC-SHA256 via X-Webhook-Signature, pass-through normalization",
+          "validation": "Unit tests for signature verification, pass-through behavior",
+          "status": "pending"
+        },
+        {
+          "id": "3.9",
+          "name": "Handler Registry",
+          "description": "Create src/handlers/registry.ts mapping source names to handlers, getHandler(source) function",
+          "validation": "Unit tests for handler lookup, unknown source handling",
+          "status": "pending"
+        },
+        {
+          "id": "3.10",
+          "name": "Router Handler Integration",
+          "description": "Update router to use handler registry, return 400 for unknown sources",
+          "validation": "Integration tests for all four sources through router",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "sprint-4",
+      "name": "Clawdbot Integration",
+      "goal": "Forward normalized events to Clawdbot hooks endpoint with authentication",
+      "demo": "Webhook received → normalized → forwarded to Clawdbot → TARS receives message",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "4.1",
+          "name": "HTTP Client Utility",
+          "description": "Create src/http/client.ts with postJson(url, body, headers), handle 10s timeout",
+          "validation": "Unit tests with mocked fetch",
+          "status": "pending"
+        },
+        {
+          "id": "4.2",
+          "name": "Clawdbot Client",
+          "description": "Create src/clawdbot/client.ts with forwardEvent(event), add Authorization and X-Webhook-Source headers",
+          "validation": "Unit tests verify correct headers, body format",
+          "status": "pending"
+        },
+        {
+          "id": "4.3",
+          "name": "Clawdbot Response Handling",
+          "description": "Handle 2xx success, 4xx/5xx errors, parse error responses for logging",
+          "validation": "Unit tests for success, client error, server error responses",
+          "status": "pending"
+        },
+        {
+          "id": "4.4",
+          "name": "Forward Integration",
+          "description": "Update handlers to call Clawdbot after normalization, add CLAWDBOT_HOOKS_URL/SECRET env vars",
+          "validation": "Integration test: webhook → normalize → forward → response",
+          "status": "pending"
+        },
+        {
+          "id": "4.5",
+          "name": "Async Forwarding",
+          "description": "Use ctx.waitUntil() for non-blocking forward, return accepted immediately",
+          "validation": "Verify immediate response, background execution",
+          "status": "pending"
+        },
+        {
+          "id": "4.6",
+          "name": "Event ID Generation",
+          "description": "Create src/utils/uuid.ts with crypto.randomUUID(), prefix with evt_",
+          "validation": "Unit tests for format, uniqueness",
+          "status": "pending"
+        },
+        {
+          "id": "4.7",
+          "name": "Timestamp Handling",
+          "description": "Create src/utils/time.ts with nowISO() returning UTC ISO 8601 timestamps",
+          "validation": "Unit tests for format correctness",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "sprint-5",
+      "name": "Reliability & Logging",
+      "goal": "Add retry logic, KV logging, and failure handling",
+      "demo": "Simulate Clawdbot down → retries → logs to KV → retrieve failed events",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "5.1",
+          "name": "KV Namespace Setup",
+          "description": "Add WEBHOOK_RELAY_LOGS KV namespace to wrangler.toml, create binding types",
+          "validation": "wrangler kv:namespace list shows namespace",
+          "status": "pending"
+        },
+        {
+          "id": "5.2",
+          "name": "Event Logger",
+          "description": "Create src/logging/event-logger.ts with logEvent(event, status, error?), store with 7-day TTL",
+          "validation": "Unit tests with mocked KV, verify key format and TTL",
+          "status": "pending"
+        },
+        {
+          "id": "5.3",
+          "name": "Retrieve Logs Endpoint",
+          "description": "Create GET /logs endpoint (auth required), support ?limit=N query param",
+          "validation": "Integration test with seeded KV data",
+          "status": "pending"
+        },
+        {
+          "id": "5.4",
+          "name": "Retry Logic",
+          "description": "Create src/http/retry.ts with withRetry(fn, attempts, delays), exponential backoff (1s, 5s, 30s)",
+          "validation": "Unit tests for retry behavior, backoff timing",
+          "status": "pending"
+        },
+        {
+          "id": "5.5",
+          "name": "Clawdbot Client with Retry",
+          "description": "Wrap forwardEvent with retry logic, log each attempt, return final status",
+          "validation": "Integration test simulating failures then success",
+          "status": "pending"
+        },
+        {
+          "id": "5.6",
+          "name": "Dead Letter Logging",
+          "description": "Log events failing all retries to KV with dead: prefix, include error and attempt history",
+          "validation": "Unit tests verify dead letter format",
+          "status": "pending"
+        },
+        {
+          "id": "5.7",
+          "name": "Dead Letter Retrieval",
+          "description": "Create GET /dead-letters endpoint (auth required), support marking as resolved",
+          "validation": "Integration test for retrieval and resolution",
+          "status": "pending"
+        },
+        {
+          "id": "5.8",
+          "name": "Structured Logging",
+          "description": "Create src/logging/logger.ts with log levels, include request ID/source/event context, JSON output",
+          "validation": "Unit tests verify log format",
+          "status": "pending"
+        },
+        {
+          "id": "5.9",
+          "name": "Request ID Tracking",
+          "description": "Generate unique request ID per webhook, include in logs and X-Request-ID response header",
+          "validation": "Verify request ID propagation through handler chain",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "sprint-6",
+      "name": "Configuration & Filtering",
+      "goal": "KV-based configuration for enabling/disabling sources and filtering events",
+      "demo": "Update KV config → source disabled → webhooks rejected; enable specific events only",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "6.1",
+          "name": "Config KV Namespace",
+          "description": "Add WEBHOOK_RELAY_CONFIG KV namespace, define config schema TypeScript types",
+          "validation": "Namespace created and bound",
+          "status": "pending"
+        },
+        {
+          "id": "6.2",
+          "name": "Config Loader",
+          "description": "Create src/config/loader.ts, load from KV with caching, fallback to defaults",
+          "validation": "Unit tests for loading, caching, defaults",
+          "status": "pending"
+        },
+        {
+          "id": "6.3",
+          "name": "Source Enable/Disable",
+          "description": "Check sources.<source>.enabled before processing, return 503 for disabled",
+          "validation": "Integration test: disable source → webhook rejected",
+          "status": "pending"
+        },
+        {
+          "id": "6.4",
+          "name": "Event Filtering",
+          "description": "Check sources.<source>.events array, support wildcards, skip forwarding for filtered events",
+          "validation": "Unit tests for exact match, wildcard, no match",
+          "status": "pending"
+        },
+        {
+          "id": "6.5",
+          "name": "Config Update Endpoint",
+          "description": "Create PUT /config endpoint (auth required), validate schema before storing",
+          "validation": "Integration test for config update flow",
+          "status": "pending"
+        },
+        {
+          "id": "6.6",
+          "name": "Config Validation",
+          "description": "Create src/config/validator.ts with JSON schema validation, reject invalid with detailed errors",
+          "validation": "Unit tests for valid config, various invalid configs",
+          "status": "pending"
+        },
+        {
+          "id": "6.7",
+          "name": "Admin Authentication",
+          "description": "Create src/auth/admin.ts checking Authorization: Bearer <ADMIN_SECRET> header",
+          "validation": "Unit tests for valid token, invalid token, missing token",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "sprint-7",
+      "name": "Rate Limiting & Security",
+      "goal": "Protect against abuse with rate limiting and enhanced security",
+      "demo": "Exceed rate limit → 429 response; invalid signatures tracked and alerted",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "7.1",
+          "name": "Rate Limiter Design",
+          "description": "Create src/security/rate-limiter.ts using CF rate limiting or KV counter, track by IP",
+          "validation": "Unit tests for counter increment, limit check",
+          "status": "pending"
+        },
+        {
+          "id": "7.2",
+          "name": "Rate Limit Middleware",
+          "description": "Add rate limit check before processing, return 429 with Retry-After header",
+          "validation": "Integration test simulating rate limit breach",
+          "status": "pending"
+        },
+        {
+          "id": "7.3",
+          "name": "Signature Failure Tracking",
+          "description": "Count signature failures per source IP, log excessive failures",
+          "validation": "Unit tests for failure counting",
+          "status": "pending"
+        },
+        {
+          "id": "7.4",
+          "name": "IP Blocking",
+          "description": "Block IPs with excessive failures, store blocklist in KV with TTL",
+          "validation": "Integration test for block trigger and enforcement",
+          "status": "pending"
+        },
+        {
+          "id": "7.5",
+          "name": "Sensitive Data Scrubbing",
+          "description": "Create src/security/scrubber.ts removing tokens/secrets/passwords before logging",
+          "validation": "Unit tests verify sensitive fields removed",
+          "status": "pending"
+        },
+        {
+          "id": "7.6",
+          "name": "CORS Headers",
+          "description": "Add CORS headers for browser testing, restrict origins in production",
+          "validation": "Verify CORS headers in responses",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "sprint-8",
+      "name": "Deployment & Production",
+      "goal": "Deploy to production with proper secrets management and monitoring",
+      "demo": "Live webhook from GitHub → processed → TARS reacts in real-time",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "8.1",
+          "name": "Wrangler Secrets Setup",
+          "description": "Document all required secrets, create scripts/setup-secrets.sh",
+          "validation": "All secrets configured in CF dashboard",
+          "status": "pending"
+        },
+        {
+          "id": "8.2",
+          "name": "Production Wrangler Config",
+          "description": "Add production environment to wrangler.toml, configure custom domain and KV namespaces",
+          "validation": "wrangler deploy --env production succeeds",
+          "status": "pending"
+        },
+        {
+          "id": "8.3",
+          "name": "CI/CD Pipeline",
+          "description": "Create .github/workflows/deploy.yml, run tests on PR, deploy on main merge",
+          "validation": "GitHub Actions workflow passes",
+          "status": "pending"
+        },
+        {
+          "id": "8.4",
+          "name": "Health Check Monitoring",
+          "description": "Add external health check (UptimeRobot/Checkly), alert on failure",
+          "validation": "Monitoring configured and alerting works",
+          "status": "pending"
+        },
+        {
+          "id": "8.5",
+          "name": "Error Alerting",
+          "description": "Configure CF Worker analytics, set up alerts for error rate spikes",
+          "validation": "Test alert triggers correctly",
+          "status": "pending"
+        },
+        {
+          "id": "8.6",
+          "name": "README Documentation",
+          "description": "Write comprehensive README with setup, env vars, and testing examples",
+          "validation": "Someone else can set up from README alone",
+          "status": "pending"
+        },
+        {
+          "id": "8.7",
+          "name": "GitHub Webhook Configuration",
+          "description": "Document GitHub webhook setup pointing to relay, required events, test instructions",
+          "validation": "Real GitHub webhook received and processed",
+          "status": "pending"
+        },
+        {
+          "id": "8.8",
+          "name": "End-to-End Verification",
+          "description": "Trigger real webhook from each source, verify TARS receives and responds",
+          "validation": "All sources working in production",
+          "status": "pending"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_sprints": 8,
+    "total_tasks": 62,
+    "status_counts": {
+      "pending": 62,
+      "in_progress": 0,
+      "completed": 0,
+      "blocked": 0
+    }
+  }
+}

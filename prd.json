@@ -1,0 +1,641 @@
+{
+  "project": "WebhookRelay",
+  "branchName": "ralph/webhook-relay-mvp",
+  "description": "Webhook Relay - A Cloudflare Worker that catches webhooks from GitHub, Stripe, Vercel, and custom sources, normalizes payloads, and forwards to Clawdbot for TARS to react",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Initialize Wrangler project with TypeScript",
+      "description": "As a developer, I need a properly configured Cloudflare Worker project with TypeScript support.",
+      "acceptanceCriteria": [
+        "Run `npm create cloudflare@latest webhook-relay -- --type=hello-world --ts`",
+        "Configure wrangler.toml with name 'webhook-relay' and compatibility_date",
+        "Configure tsconfig.json with strict mode enabled",
+        "`wrangler dev` starts without errors",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Implement health endpoint",
+      "description": "As a developer, I need a health check endpoint to verify the worker is running.",
+      "acceptanceCriteria": [
+        "GET /health returns {status: 'healthy', version: '0.1.0'}",
+        "Response has Content-Type: application/json",
+        "Returns 200 status code",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Implement URL router with param extraction",
+      "description": "As a developer, I need a router that matches paths and extracts URL parameters.",
+      "acceptanceCriteria": [
+        "Create src/router.ts with path matching logic",
+        "Support pattern /catch/:source with param extraction",
+        "Return 404 for unknown routes with JSON error body",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Implement catch endpoint stub",
+      "description": "As a developer, I need the /catch/:source endpoint to accept POST requests.",
+      "acceptanceCriteria": [
+        "POST /catch/:source returns {status: 'accepted', source: '<source>'}",
+        "Extract source param from URL path",
+        "Return 405 for non-POST methods",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Implement JSON body parsing with error handling",
+      "description": "As a developer, I need to parse JSON request bodies and handle errors gracefully.",
+      "acceptanceCriteria": [
+        "Parse JSON body from incoming POST requests",
+        "Return 400 with error message for malformed JSON",
+        "Handle empty body without crashing",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Add centralized error handling",
+      "description": "As a developer, I need consistent error responses across all endpoints.",
+      "acceptanceCriteria": [
+        "Create error handler that catches thrown exceptions",
+        "Return consistent {status: 'error', error: 'message'} format",
+        "Log errors to console with stack trace",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Define TypeScript types for webhook handling",
+      "description": "As a developer, I need type definitions for the webhook system.",
+      "acceptanceCriteria": [
+        "Create src/types.ts with NormalizedEvent interface",
+        "Define WebhookSource type: 'github' | 'stripe' | 'vercel' | 'custom'",
+        "Define WebhookHandler interface with verify() and normalize() methods",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Implement HMAC-SHA256 verification utility",
+      "description": "As a developer, I need a crypto utility to verify webhook signatures.",
+      "acceptanceCriteria": [
+        "Create src/crypto/hmac.ts with verifyHmacSha256(secret, payload, signature) function",
+        "Use Web Crypto API (Cloudflare Workers compatible)",
+        "Return boolean true for valid, false for invalid",
+        "Handle empty inputs without crashing",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Implement GitHub signature verification",
+      "description": "As a developer, I need to verify GitHub webhook signatures.",
+      "acceptanceCriteria": [
+        "Create src/handlers/github/verify.ts",
+        "Parse X-Hub-Signature-256 header (format: sha256=<hex>)",
+        "Verify signature against GITHUB_WEBHOOK_SECRET env var",
+        "Return false for missing or invalid signatures",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Implement GitHub event parsing and normalization",
+      "description": "As a developer, I need to parse GitHub webhooks into normalized events.",
+      "acceptanceCriteria": [
+        "Create src/handlers/github/normalize.ts",
+        "Parse X-GitHub-Event header for event type",
+        "Parse X-GitHub-Delivery header for delivery ID",
+        "Map to normalized format: github.push, github.star, github.pull_request, github.issues",
+        "Extract repo name, action, and sender from payload",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Integrate GitHub handler with router",
+      "description": "As a developer, I need the GitHub handler wired into the routing system.",
+      "acceptanceCriteria": [
+        "Create src/handlers/github/index.ts implementing WebhookHandler interface",
+        "Wire handler to /catch/github route",
+        "Return 401 for invalid signature",
+        "Return normalized event on success",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Implement Stripe signature verification",
+      "description": "As a developer, I need to verify Stripe webhook signatures.",
+      "acceptanceCriteria": [
+        "Create src/handlers/stripe/verify.ts",
+        "Parse Stripe-Signature header (format: t=timestamp,v1=signature)",
+        "Implement Stripe scheme: HMAC-SHA256(secret, timestamp.payload)",
+        "Reject signatures older than 5 minutes",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Implement Stripe event normalization",
+      "description": "As a developer, I need to parse Stripe webhooks into normalized events.",
+      "acceptanceCriteria": [
+        "Create src/handlers/stripe/normalize.ts",
+        "Map event types: payment_intent.succeeded → stripe.payment.succeeded",
+        "Extract amount, customer ID, and currency from payload",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Integrate Stripe handler with router",
+      "description": "As a developer, I need the Stripe handler wired into the routing system.",
+      "acceptanceCriteria": [
+        "Create src/handlers/stripe/index.ts implementing WebhookHandler interface",
+        "Wire handler to /catch/stripe route",
+        "Add STRIPE_WEBHOOK_SECRET to env vars",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Implement Vercel signature verification and normalization",
+      "description": "As a developer, I need to handle Vercel deployment webhooks.",
+      "acceptanceCriteria": [
+        "Create src/handlers/vercel/verify.ts with HMAC-SHA1 verification",
+        "Parse X-Vercel-Signature header",
+        "Create src/handlers/vercel/normalize.ts mapping deployment events",
+        "Wire handler to /catch/vercel route",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Implement generic/custom webhook handler",
+      "description": "As a developer, I need a fallback handler for custom webhooks.",
+      "acceptanceCriteria": [
+        "Create src/handlers/custom/index.ts",
+        "Use HMAC-SHA256 with X-Webhook-Signature header",
+        "Read event type from X-Webhook-Event header or body.event field",
+        "Wrap payload as-is in normalized format",
+        "Wire to /catch/custom route",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-017",
+      "title": "Create handler registry for dynamic routing",
+      "description": "As a developer, I need a registry to look up handlers by source name.",
+      "acceptanceCriteria": [
+        "Create src/handlers/registry.ts with getHandler(source) function",
+        "Return appropriate handler for github, stripe, vercel, custom",
+        "Return null for unknown sources",
+        "Update router to use registry instead of hardcoded routes",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-018",
+      "title": "Implement HTTP client for forwarding",
+      "description": "As a developer, I need an HTTP client to forward events to Clawdbot.",
+      "acceptanceCriteria": [
+        "Create src/http/client.ts with postJson(url, body, headers) function",
+        "Set 10 second timeout using AbortController",
+        "Return {status, body} from response",
+        "Handle network errors gracefully",
+        "Typecheck passes"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-019",
+      "title": "Implement Clawdbot forwarding client",
+      "description": "As a developer, I need to forward normalized events to Clawdbot's hooks endpoint.",
+      "acceptanceCriteria": [
+        "Create src/clawdbot/client.ts with forwardEvent(event) function",
+        "Add Authorization: Bearer <CLAWDBOT_HOOKS_SECRET> header",
+        "Add X-Webhook-Source header with source name",
+        "POST to CLAWDBOT_HOOKS_URL environment variable",
+        "Typecheck passes"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-020",
+      "title": "Integrate forwarding into webhook pipeline",
+      "description": "As a developer, I need handlers to forward events after normalization.",
+      "acceptanceCriteria": [
+        "Update handlers to call forwardEvent after successful normalization",
+        "Use ctx.waitUntil() for non-blocking forward",
+        "Return 'accepted' immediately to webhook sender",
+        "Log forwarding success/failure",
+        "Typecheck passes"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-021",
+      "title": "Add UUID and timestamp utilities",
+      "description": "As a developer, I need utilities for generating event IDs and timestamps.",
+      "acceptanceCriteria": [
+        "Create src/utils/uuid.ts with generateEventId() returning 'evt_' + UUID",
+        "Create src/utils/time.ts with nowISO() returning UTC ISO 8601 timestamp",
+        "Use crypto.randomUUID() (Workers compatible)",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "Implement retry logic with exponential backoff",
+      "description": "As a developer, I need retry logic for failed Clawdbot forwards.",
+      "acceptanceCriteria": [
+        "Create src/http/retry.ts with withRetry(fn, config) wrapper",
+        "Implement exponential backoff: 1s, 5s, 30s delays",
+        "Maximum 3 attempts",
+        "Return result after success or final failure",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-023",
+      "title": "Wrap Clawdbot client with retry logic",
+      "description": "As a developer, I need the Clawdbot client to retry on failure.",
+      "acceptanceCriteria": [
+        "Wrap forwardEvent with withRetry",
+        "Log each retry attempt",
+        "Include attempt count in logs",
+        "Typecheck passes"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-024",
+      "title": "Set up KV namespace for logging",
+      "description": "As a developer, I need a KV namespace to store event logs.",
+      "acceptanceCriteria": [
+        "Add WEBHOOK_RELAY_LOGS KV namespace to wrangler.toml",
+        "Create KV binding type definition in env.ts",
+        "Verify with wrangler kv:namespace list",
+        "Typecheck passes"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-025",
+      "title": "Implement event logging to KV",
+      "description": "As a developer, I need to log all webhook events to KV storage.",
+      "acceptanceCriteria": [
+        "Create src/logging/event-logger.ts with logEvent(event, status, error?) function",
+        "Store with key format: log:{timestamp}:{eventId}",
+        "Set 7 day TTL using expirationTtl",
+        "Include event data, forwarding status, and any error",
+        "Typecheck passes"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-026",
+      "title": "Implement dead letter logging",
+      "description": "As a developer, I need to track events that fail all retry attempts.",
+      "acceptanceCriteria": [
+        "Log failed events to KV with key prefix 'dead:'",
+        "Include original event, all error messages, and attempt count",
+        "Set 30 day TTL for dead letters",
+        "Typecheck passes"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-027",
+      "title": "Add request ID tracking",
+      "description": "As a developer, I need request IDs for tracing webhooks through the system.",
+      "acceptanceCriteria": [
+        "Generate unique request ID (req_UUID) for each incoming webhook",
+        "Include request ID in all log entries",
+        "Return request ID in X-Request-ID response header",
+        "Typecheck passes"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-028",
+      "title": "Implement structured JSON logging",
+      "description": "As a developer, I need consistent JSON log output for Cloudflare integration.",
+      "acceptanceCriteria": [
+        "Create src/logging/logger.ts with log(level, message, context) function",
+        "Support levels: debug, info, warn, error",
+        "Output JSON with timestamp, level, message, requestId, source",
+        "Typecheck passes"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-029",
+      "title": "Set up KV namespace for configuration",
+      "description": "As a developer, I need a KV namespace for dynamic configuration.",
+      "acceptanceCriteria": [
+        "Add WEBHOOK_RELAY_CONFIG KV namespace to wrangler.toml",
+        "Define Config TypeScript interface",
+        "Create KV binding type definition",
+        "Typecheck passes"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-030",
+      "title": "Implement config loader with defaults",
+      "description": "As a developer, I need to load configuration from KV with fallback defaults.",
+      "acceptanceCriteria": [
+        "Create src/config/loader.ts with loadConfig() function",
+        "Load config from KV namespace",
+        "Return default config if KV is empty",
+        "Cache config for request duration",
+        "Typecheck passes"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-031",
+      "title": "Implement source enable/disable via config",
+      "description": "As a developer, I need to enable or disable webhook sources via configuration.",
+      "acceptanceCriteria": [
+        "Check config.sources[source].enabled before processing",
+        "Return 503 Service Unavailable for disabled sources",
+        "Include source name in error response",
+        "Typecheck passes"
+      ],
+      "priority": 31,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-032",
+      "title": "Implement event filtering via config",
+      "description": "As a developer, I need to filter which events get forwarded based on config.",
+      "acceptanceCriteria": [
+        "Check config.sources[source].events array",
+        "Support wildcards (e.g., 'deployment.*' matches deployment.created)",
+        "Accept webhook but skip forwarding for filtered events",
+        "Return {status: 'accepted', forwarded: false} for filtered events",
+        "Typecheck passes"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-033",
+      "title": "Implement admin authentication",
+      "description": "As a developer, I need to protect admin endpoints with authentication.",
+      "acceptanceCriteria": [
+        "Create src/auth/admin.ts with verifyAdminToken(request) function",
+        "Check Authorization: Bearer <ADMIN_SECRET> header",
+        "Return 401 for missing or invalid token",
+        "Add ADMIN_SECRET to env vars",
+        "Typecheck passes"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-034",
+      "title": "Implement GET /logs endpoint",
+      "description": "As an admin, I want to retrieve recent webhook logs.",
+      "acceptanceCriteria": [
+        "Create GET /logs endpoint requiring admin auth",
+        "List recent events from KV (default limit 50)",
+        "Support ?limit=N query parameter",
+        "Return JSON array of log entries",
+        "Typecheck passes"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-035",
+      "title": "Implement GET /dead-letters endpoint",
+      "description": "As an admin, I want to retrieve failed webhook events.",
+      "acceptanceCriteria": [
+        "Create GET /dead-letters endpoint requiring admin auth",
+        "List all events with 'dead:' key prefix",
+        "Return JSON array with event data and error details",
+        "Typecheck passes"
+      ],
+      "priority": 35,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-036",
+      "title": "Implement PUT /config endpoint",
+      "description": "As an admin, I want to update webhook relay configuration.",
+      "acceptanceCriteria": [
+        "Create PUT /config endpoint requiring admin auth",
+        "Validate config JSON schema before saving",
+        "Return 400 with validation errors for invalid config",
+        "Save valid config to KV",
+        "Return updated config on success",
+        "Typecheck passes"
+      ],
+      "priority": 36,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-037",
+      "title": "Implement rate limiting",
+      "description": "As a developer, I need to protect against webhook abuse.",
+      "acceptanceCriteria": [
+        "Create src/security/rate-limiter.ts",
+        "Track request count by IP using KV with short TTL",
+        "Return 429 Too Many Requests when limit exceeded",
+        "Include Retry-After header in 429 response",
+        "Configure limit via RATE_LIMIT_PER_MIN env var (default 100)",
+        "Typecheck passes"
+      ],
+      "priority": 37,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-038",
+      "title": "Implement signature failure tracking and IP blocking",
+      "description": "As a developer, I need to block IPs with repeated signature failures.",
+      "acceptanceCriteria": [
+        "Track signature failures per IP in KV",
+        "Block IP after 10 failures within 1 hour",
+        "Store blocklist in KV with 1 hour TTL",
+        "Check blocklist before processing any request",
+        "Return 403 Forbidden for blocked IPs",
+        "Typecheck passes"
+      ],
+      "priority": 38,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-039",
+      "title": "Implement sensitive data scrubbing",
+      "description": "As a developer, I need to prevent secrets from appearing in logs.",
+      "acceptanceCriteria": [
+        "Create src/security/scrubber.ts with scrubSensitive(obj) function",
+        "Redact fields: password, secret, token, key, authorization",
+        "Replace values with '[REDACTED]'",
+        "Apply to all logged payloads",
+        "Typecheck passes"
+      ],
+      "priority": 39,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-040",
+      "title": "Configure production deployment",
+      "description": "As a developer, I need production environment configuration.",
+      "acceptanceCriteria": [
+        "Add [env.production] section to wrangler.toml",
+        "Configure production KV namespace IDs",
+        "Set up custom route/domain in wrangler.toml",
+        "Verify wrangler deploy --env production succeeds (dry run)",
+        "Typecheck passes"
+      ],
+      "priority": 40,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-041",
+      "title": "Create secrets setup script",
+      "description": "As a developer, I need documentation and tooling for secrets management.",
+      "acceptanceCriteria": [
+        "Create scripts/setup-secrets.sh",
+        "Script prompts for all required secrets",
+        "Script runs wrangler secret put for each secret",
+        "Document all required secrets in README",
+        "Typecheck passes"
+      ],
+      "priority": 41,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-042",
+      "title": "Create CI/CD GitHub Actions workflow",
+      "description": "As a developer, I need automated testing and deployment.",
+      "acceptanceCriteria": [
+        "Create .github/workflows/ci.yml",
+        "Run typecheck and tests on all PRs",
+        "Deploy to production on push to main",
+        "Use CF_API_TOKEN secret for deployment",
+        "Typecheck passes"
+      ],
+      "priority": 42,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-043",
+      "title": "Write comprehensive README",
+      "description": "As a developer, I need documentation to set up and use the webhook relay.",
+      "acceptanceCriteria": [
+        "Document all environment variables with descriptions",
+        "Include setup instructions for local development",
+        "Document each supported webhook source",
+        "Include example curl commands for testing each endpoint",
+        "Document admin endpoints and authentication",
+        "Typecheck passes"
+      ],
+      "priority": 43,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
