@@ -2,9 +2,14 @@
 - Use `npm run typecheck` to verify TypeScript compilation before commits
 - JSON responses need explicit `Content-Type: application/json` header
 - Router uses pattern `/path/:param` format, extracts params via regex
-- HTTP status codes: 200 OK, 400 Bad Request, 404 Not Found, 405 Method Not Allowed
+- HTTP status codes: 200 OK, 400 Bad Request, 401 Unauthorized, 404 Not Found, 405 Method Not Allowed
 - Parse request body with `request.text()` then `JSON.parse()` for better error control
 - Empty request bodies should be handled gracefully (treat as empty object)
+- Webhook handlers implement WebhookHandler interface with verify() and normalize() methods
+- Handler structure: src/handlers/<source>/{index.ts, verify.ts, normalize.ts}
+- Web Crypto API available via global `crypto.subtle` for HMAC verification
+- Must read request body as text before signature verification (can't reuse stream)
+- Environment variables defined in Env interface in src/index.ts
 
 ---
 
@@ -193,5 +198,26 @@
 - payload.repository.full_name contains repo name
 - payload.action contains action type (opened, closed, etc.)
 - payload.sender.login contains username
+
+---
+
+## [2026-01-31 05:05 UTC] - US-011 (COMPLETED)
+- Integrated GitHub handler with router
+- Files created:
+  - src/handlers/github/index.ts - GitHubHandler class implementing WebhookHandler
+- Files changed:
+  - src/index.ts - Wired GitHub handler to /catch/github route, added Env types
+- GitHubHandler implements WebhookHandler interface (verify + normalize methods)
+- Route verifies signature before processing
+- Returns 401 Unauthorized for invalid signatures
+- Returns normalized event on success
+- Added GITHUB_WEBHOOK_SECRET to Env interface
+- Typecheck passes
+
+**Learnings for future iterations:**
+- Handlers must read body text before verification (can't reuse request.body stream)
+- Parse bodyText to JSON after verification passes
+- Return 401 for authentication/signature failures (not 403)
+- Handler pattern: verify signature → parse payload → normalize → return/forward
 
 ---
