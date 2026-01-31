@@ -155,3 +155,21 @@
 - Hex conversion: Array.from(buffer).map(b => b.toString(16).padStart(2, '0')).join('')
 
 ---
+
+## [2026-01-31 04:55 UTC] - US-009 (COMPLETED)
+- Implemented GitHub signature verification
+- Files created:
+  - src/handlers/github/verify.ts - GitHub-specific signature verification
+- verifyGitHubSignature(request, body, secret) function
+- Parses X-Hub-Signature-256 header with format: sha256=<hex>
+- Returns false for missing header or invalid format
+- Uses verifyHmacSha256() for actual verification
+- Typecheck passes
+
+**Learnings for future iterations:**
+- GitHub uses X-Hub-Signature-256 header for SHA-256 signatures
+- Header format: "sha256=<hex_signature>"
+- Must verify signature against raw body string, not parsed JSON
+- Handler structure: src/handlers/<source>/ directory for each webhook source
+
+---
